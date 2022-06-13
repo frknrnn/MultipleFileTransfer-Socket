@@ -1,6 +1,6 @@
 import socket
 import time
-
+import os
 TCP_IP = '192.168.1.109'
 TCP_PORT = 4000
 server = (TCP_IP, TCP_PORT)
@@ -9,6 +9,34 @@ BUFFER_SIZE = 1024
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((TCP_IP, TCP_PORT))
 
+mainFolder = "C:/Users/optof/PycharmProjects/socketProgram/Results"
+if not os.path.exists(mainFolder):
+    os.makedirs(mainFolder)
+
+
+def getFolders():
+    f = 0
+    while True:
+        s.sendto("newFolder".encode('utf-8'), server)
+        data = s.recv(BUFFER_SIZE)
+
+        if (data == b'newFolderData'):
+            tempFolder = mainFolder+"/result"+str(f)
+            if not os.path.exists(tempFolder):
+                os.makedirs(tempFolder)
+            f +=1
+            s.sendto("getImage".encode('utf-8'), server)
+            getImages(tempFolder)
+            time.sleep(0.5)
+            s.sendto("getJson".encode('utf-8'), server)
+            getJson(tempFolder)
+            time.sleep(0.5)
+            s.sendto("getPdf".encode('utf-8'), server)
+            getPdf(tempFolder)
+            time.sleep(0.5)
+            s.sendto("completeFolder".encode('utf-8'), server)
+        if (data == b'completeAllFolders'):
+            break
 
 
 
@@ -16,13 +44,14 @@ s.connect((TCP_IP, TCP_PORT))
 
 
 
-def getJson():
+
+def getJson(path):
     count = 0
     while True:
         s.sendto("next".encode('utf-8'), server)
         data = s.recv(BUFFER_SIZE)
         if (data == b'newData'):
-            recived_f = 'imgt_thread' + str(count) + '.json'
+            recived_f = path+"/"+'imgt_thread' + str(count) + '.json'
             count += 1
             with open(recived_f, 'wb') as f:
                 print('file opened')
@@ -47,13 +76,13 @@ def getJson():
         elif (data == b'finish'):
             break
 
-def getPdf():
+def getPdf(path):
     count = 0
     while True:
         s.sendto("next".encode('utf-8'), server)
         data = s.recv(BUFFER_SIZE)
         if (data == b'newData'):
-            recived_f = 'imgt_thread' + str(count) + '.pdf'
+            recived_f = path+"/"+'imgt_thread' + str(count) + '.pdf'
             count += 1
             with open(recived_f, 'wb') as f:
                 print('file opened')
@@ -79,13 +108,13 @@ def getPdf():
             break
 
 
-def getImages():
+def getImages(path):
     count = 0
     while True:
         s.sendto("next".encode('utf-8'), server)
         data = s.recv(BUFFER_SIZE)
         if (data == b'newData'):
-            recived_f = 'imgt_thread' + str(count) + '.png'
+            recived_f = path+"/"+ 'imgt_thread' + str(count) + '.png'
             count += 1
             with open(recived_f, 'wb') as f:
                 print('file opened')
@@ -109,25 +138,12 @@ def getImages():
                 f.close()
         elif (data == b'finish'):
             break
-
-
-
 
 message = input("-> ")
 # inputMessage = 'getImage'
 s.sendto(message.encode('utf-8'), server)
 time1 = time.time()
-
-getImages()
-message = input("-> ")
-# inputMessage = 'getJson'
-s.sendto(message.encode('utf-8'), server)
-getJson()
-message = input("-> ")
-# inputMessage = 'getPdf'
-s.sendto(message.encode('utf-8'), server)
-getPdf()
-
+getFolders()
 time2 = time.time()
 
 print(time2-time1)

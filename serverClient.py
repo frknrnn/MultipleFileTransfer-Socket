@@ -17,30 +17,57 @@ class ClientThread(Thread):
         self.port = port
         self.sock = sock
         print(" New thread started for "+ip+":"+str(port))
-        self.getFiles()
 
-    def getFiles(self):
+    def sendFolders(self):
+        folders=self.getFolders()
+        for i in folders:
+            folderPath = self.mainPath+"/"+i
+            images,jsonFiles,pdfFileList = self.getFiles(folderPath)
+            while True:
+                data, addr = self.sock.recvfrom(1024)
+                data = data.decode('utf-8')
+                if (data == "newFolder"):
+                    self.sock.send(b'newFolderData')
+                    while True:
+                        data, addr = self.sock.recvfrom(1024)
+                        data = data.decode('utf-8')
+                        if (data == "getImage"):
+                            self.sendImage(folderPath, images)
+                        if (data == "getPdf"):
+                            self.sendPdfFiles(folderPath, pdfFileList)
+                        if (data == "getJson"):
+                            self.sendJsonFiles(folderPath, jsonFiles)
+                        if( data=="completeFolder"):
+                            break
+                    break
+        self.sock.send(b'completeAllFolders')
+
+    def getFolders(self):
         self.mainPath = "C:/Users/PC/PycharmProjects/socketP/images"
-        self.files = os.listdir(self.mainPath)
+        folders = os.listdir(self.mainPath)
+        return folders
 
-        self.images = []
-        self.jsonFiles = []
-        self.pdfFileList = []
-
-        for i in self.files:
+    def getFiles(self,folder):
+        files = os.listdir(folder)
+        images = []
+        jsonFiles = []
+        pdfFileList = []
+        for i in files:
             if(i.endswith(".json")):
-                self.jsonFiles.append(i)
+                jsonFiles.append(i)
             if (i.endswith(".png")):
-                self.images.append(i)
+                images.append(i)
             if (i.endswith(".jpg")):
-                self.images.append(i)
+                images.append(i)
             if (i.endswith(".jpeg")):
-                self.images.append(i)
+                images.append(i)
             if (i.endswith(".pdf")):
-                self.pdfFileList.append(i)
+                pdfFileList.append(i)
 
-    def sendPdfFiles(self):
-        for i in self.pdfFileList:
+        return images,jsonFiles,pdfFileList
+
+    def sendPdfFiles(self,folderPath,fileList):
+        for i in fileList:
             print(i)
             while True:
                 data, addr = self.sock.recvfrom(1024)
@@ -48,7 +75,7 @@ class ClientThread(Thread):
                 if (data == "next"):
                     self.sock.send(b'newData')
                     break
-            filename = self.mainPath + "/" + i
+            filename = folderPath + "/" + i
             f = open(filename, 'rb')
             self.flagDataSending = True
             while self.flagDataSending:
@@ -67,8 +94,8 @@ class ClientThread(Thread):
         print('finish')
         self.sock.send(b'finish')
 
-    def sendJsonFiles(self):
-        for i in self.jsonFiles:
+    def sendJsonFiles(self,folderPath,fileList):
+        for i in fileList:
             print(i)
             while True:
                 data, addr = self.sock.recvfrom(1024)
@@ -76,7 +103,7 @@ class ClientThread(Thread):
                 if (data == "next"):
                     self.sock.send(b'newData')
                     break
-            filename = self.mainPath + "/" + i
+            filename = folderPath + "/" + i
             f = open(filename, 'rb')
             self.flagDataSending = True
             while self.flagDataSending:
@@ -95,8 +122,8 @@ class ClientThread(Thread):
         print('finish')
         self.sock.send(b'finish')
 
-    def sendImage(self):
-        for i in self.images:
+    def sendImage(self,folderPath,fileList):
+        for i in fileList:
             print(i)
             while True:
                 data, addr = self.sock.recvfrom(1024)
@@ -104,7 +131,7 @@ class ClientThread(Thread):
                 if (data == "next"):
                     self.sock.send(b'newData')
                     break
-            filename = self.mainPath+"/"+i
+            filename = folderPath+"/"+i
             f = open(filename, 'rb')
             self.flagDataSending = True
             while self.flagDataSending:
@@ -122,14 +149,11 @@ class ClientThread(Thread):
                     break
         print('finish')
         self.sock.send(b'finish')
+
+
     def run(self):
         while True:
             data, addr = self.sock.recvfrom(1024)
             data = data.decode('utf-8')
-            #print(data)
-            if (data == "getImage"):
-                self.sendImage()
-            if (data == "getPdf"):
-                self.sendPdfFiles()
-            if(data == "getJson"):
-                self.sendJsonFiles()
+            if(data == 'getFolders'):
+                self.sendFolders()
