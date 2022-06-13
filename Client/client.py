@@ -139,8 +139,8 @@ def getImages(path):
         elif (data == b'finish'):
             break
 
-message = input("-> ")
-# inputMessage = 'getImage'
+message = input("write 'getFolders' -> ")
+# inputMessage = 'getFolders'
 s.sendto(message.encode('utf-8'), server)
 time1 = time.time()
 getFolders()
