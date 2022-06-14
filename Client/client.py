@@ -1,8 +1,9 @@
 import socket
 import time
 import os
-TCP_IP = '192.168.1.109'
-TCP_PORT = 4000
+
+TCP_IP = '192.168.1.108'
+TCP_PORT = 5000
 server = (TCP_IP, TCP_PORT)
 BUFFER_SIZE = 1024
 
@@ -37,12 +38,6 @@ def getFolders():
             s.sendto("completeFolder".encode('utf-8'), server)
         if (data == b'completeAllFolders'):
             break
-
-
-
-
-
-
 
 
 def getJson(path):
