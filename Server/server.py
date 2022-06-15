@@ -5,11 +5,10 @@ import os
 from serverClient import ClientThread
 
 noConnectionFlag = False
+
 '''
 For JETSON NANO
 import netifaces as ni
-
-
 
 wlanFlag = False
 try:
@@ -24,7 +23,6 @@ if (wlanFlag == True):
         noConnectionFlag = True
 
 '''
-
 
 ip = '192.168.1.108'
 
